@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -13,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Task, Category, ViewMode } from '@/types';
 import { defaultCategories, defaultTasks } from '@/data/defaultData';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, Calendar } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
