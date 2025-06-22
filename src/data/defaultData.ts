@@ -8,8 +8,11 @@ export const defaultCategories: Category[] = [
     description: 'Tempat dan makanan untuk acara',
     color: 'bg-rose-500',
     icon: '🏛️',
-    order: 1,
-    timeline: '12-months'
+    order_index: 1,
+    timeline: '12-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '2',
@@ -17,8 +20,11 @@ export const defaultCategories: Category[] = [
     description: 'Fotografer dan videographer',
     color: 'bg-purple-500',
     icon: '📸',
-    order: 2,
-    timeline: '12-months'
+    order_index: 2,
+    timeline: '12-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '3',
@@ -26,8 +32,11 @@ export const defaultCategories: Category[] = [
     description: 'Gaun, jas, dan makeup',
     color: 'bg-pink-500',
     icon: '👗',
-    order: 3,
-    timeline: '6-months'
+    order_index: 3,
+    timeline: '6-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '4',
@@ -35,8 +44,11 @@ export const defaultCategories: Category[] = [
     description: 'Desain dan cetak undangan',
     color: 'bg-amber-500',
     icon: '💌',
-    order: 4,
-    timeline: '3-months'
+    order_index: 4,
+    timeline: '3-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '5',
@@ -44,8 +56,11 @@ export const defaultCategories: Category[] = [
     description: 'Dokumen dan perizinan',
     color: 'bg-blue-500',
     icon: '📋',
-    order: 5,
-    timeline: '6-months'
+    order_index: 5,
+    timeline: '6-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '6',
@@ -53,8 +68,11 @@ export const defaultCategories: Category[] = [
     description: 'Dekorasi venue dan bunga',
     color: 'bg-green-500',
     icon: '💐',
-    order: 6,
-    timeline: '3-months'
+    order_index: 6,
+    timeline: '3-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '7',
@@ -62,8 +80,11 @@ export const defaultCategories: Category[] = [
     description: 'Band atau DJ untuk acara',
     color: 'bg-indigo-500',
     icon: '🎵',
-    order: 7,
-    timeline: '6-months'
+    order_index: 7,
+    timeline: '6-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '8',
@@ -71,8 +92,11 @@ export const defaultCategories: Category[] = [
     description: 'Mobil pengantin dan tamu',
     color: 'bg-cyan-500',
     icon: '🚗',
-    order: 8,
-    timeline: '1-month'
+    order_index: 8,
+    timeline: '1-month',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '9',
@@ -80,8 +104,11 @@ export const defaultCategories: Category[] = [
     description: 'Perencanaan bulan madu',
     color: 'bg-orange-500',
     icon: '✈️',
-    order: 9,
-    timeline: '3-months'
+    order_index: 9,
+    timeline: '3-months',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: '10',
@@ -89,8 +116,11 @@ export const defaultCategories: Category[] = [
     description: 'Persiapan di hari pernikahan',
     color: 'bg-red-500',
     icon: '💒',
-    order: 10,
-    timeline: 'day-of'
+    order_index: 10,
+    timeline: 'day-of',
+    user_id: '',
+    created_at: '',
+    updated_at: ''
   }
 ];
 
@@ -101,30 +131,39 @@ export const defaultTasks: Task[] = [
     title: 'Survei dan booking venue resepsi',
     description: 'Kunjungi beberapa venue dan pilih yang terbaik',
     completed: false,
-    categoryId: '1',
+    category_id: '1',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '2',
     title: 'Survei dan booking venue akad nikah',
     description: 'Pilih tempat untuk akad nikah',
     completed: false,
-    categoryId: '1',
+    category_id: '1',
+    user_id: '',
     priority: 'high',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '3',
     title: 'Pilih catering dan menu makanan',
     description: 'Food tasting dan finalisasi menu',
     completed: false,
-    categoryId: '1',
+    category_id: '1',
+    user_id: '',
     priority: 'high',
-    order: 3,
-    createdAt: new Date().toISOString()
+    order_index: 3,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   
   // Dokumentasi
@@ -133,30 +172,39 @@ export const defaultTasks: Task[] = [
     title: 'Booking fotografer wedding',
     description: 'Pilih fotografer dengan portfolio terbaik',
     completed: false,
-    categoryId: '2',
+    category_id: '2',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '5',
     title: 'Booking videographer',
     description: 'Untuk video cinematic pernikahan',
     completed: false,
-    categoryId: '2',
+    category_id: '2',
+    user_id: '',
     priority: 'medium',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '6',
     title: 'Prewedding photoshoot',
     description: 'Sesi foto sebelum pernikahan',
     completed: false,
-    categoryId: '2',
+    category_id: '2',
+    user_id: '',
     priority: 'medium',
-    order: 3,
-    createdAt: new Date().toISOString()
+    order_index: 3,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
 
   // Fashion & Beauty
@@ -165,40 +213,52 @@ export const defaultTasks: Task[] = [
     title: 'Beli atau sewa gaun pengantin',
     description: 'Fitting dan finalisasi gaun',
     completed: false,
-    categoryId: '3',
+    category_id: '3',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '8',
     title: 'Beli atau sewa jas pengantin pria',
     description: 'Sesuaikan dengan tema wedding',
     completed: false,
-    categoryId: '3',
+    category_id: '3',
+    user_id: '',
     priority: 'high',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '9',
     title: 'Booking MUA (Make Up Artist)',
     description: 'Trial makeup dan book untuk hari H',
     completed: false,
-    categoryId: '3',
+    category_id: '3',
+    user_id: '',
     priority: 'high',
-    order: 3,
-    createdAt: new Date().toISOString()
+    order_index: 3,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '10',
     title: 'Perawatan kecantikan pengantin',
     description: 'Facial, spa, dll sebelum hari H',
     completed: false,
-    categoryId: '3',
+    category_id: '3',
+    user_id: '',
     priority: 'medium',
-    order: 4,
-    createdAt: new Date().toISOString()
+    order_index: 4,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
 
   // Undangan
@@ -207,30 +267,39 @@ export const defaultTasks: Task[] = [
     title: 'Desain undangan pernikahan',
     description: 'Buat atau pesan desain undangan',
     completed: false,
-    categoryId: '4',
+    category_id: '4',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '12',
     title: 'Cetak undangan',
     description: 'Cetak sesuai jumlah tamu yang diundang',
     completed: false,
-    categoryId: '4',
+    category_id: '4',
+    user_id: '',
     priority: 'high',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '13',
     title: 'Distribusi undangan',
     description: 'Bagikan undangan ke semua tamu',
     completed: false,
-    categoryId: '4',
+    category_id: '4',
+    user_id: '',
     priority: 'medium',
-    order: 3,
-    createdAt: new Date().toISOString()
+    order_index: 3,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
 
   // Administrasi
@@ -239,30 +308,39 @@ export const defaultTasks: Task[] = [
     title: 'Urus surat nikah di KUA/Gereja',
     description: 'Daftar dan urus persyaratan nikah',
     completed: false,
-    categoryId: '5',
+    category_id: '5',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '15',
     title: 'Siapkan dokumen persyaratan',
     description: 'KTP, KK, akta kelahiran, dll',
     completed: false,
-    categoryId: '5',
+    category_id: '5',
+    user_id: '',
     priority: 'high',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '16',
     title: 'Buat daftar tamu undangan',
     description: 'Compile semua nama dan alamat tamu',
     completed: false,
-    categoryId: '5',
+    category_id: '5',
+    user_id: '',
     priority: 'medium',
-    order: 3,
-    createdAt: new Date().toISOString()
+    order_index: 3,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
 
   // Hari H
@@ -271,19 +349,25 @@ export const defaultTasks: Task[] = [
     title: 'Persiapan pengantin pagi hari',
     description: 'Makeup, dress up, dan persiapan final',
     completed: false,
-    categoryId: '10',
+    category_id: '10',
+    user_id: '',
     priority: 'high',
-    order: 1,
-    createdAt: new Date().toISOString()
+    order_index: 1,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '18',
     title: 'Koordinasi dengan vendor',
     description: 'Pastikan semua vendor hadir tepat waktu',
     completed: false,
-    categoryId: '10',
+    category_id: '10',
+    user_id: '',
     priority: 'high',
-    order: 2,
-    createdAt: new Date().toISOString()
+    order_index: 2,
+    is_important: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ];

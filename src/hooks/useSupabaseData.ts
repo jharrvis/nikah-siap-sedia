@@ -74,7 +74,13 @@ export const useSupabaseData = () => {
       return;
     }
     
-    setTasks(data || []);
+    // Type assertion to ensure priority is properly typed
+    const typedTasks = (data || []).map(task => ({
+      ...task,
+      priority: task.priority as 'low' | 'medium' | 'high' | 'urgent'
+    }));
+    
+    setTasks(typedTasks);
   };
 
   const fetchNotes = async () => {
