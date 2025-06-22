@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -266,15 +267,15 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Category Filter */}
+            {/* Category Filter - Mobile Optimized */}
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={selectedCategory === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedCategory('all')}
-                className={selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''}
+                className={`${selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs`}
               >
-                Semua Tugas ({tasks.length})
+                Semua ({tasks.length})
               </Button>
               {categories.map(category => {
                 const categoryTasks = tasks.filter(task => task.category_id === category.id);
@@ -284,23 +285,25 @@ const Dashboard: React.FC = () => {
                     variant={selectedCategory === category.id ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory(category.id)}
-                    className={selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''}
+                    className={`${selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs`}
                   >
-                    <span className="mr-2">{category.icon}</span>
-                    {category.name} ({categoryTasks.length})
+                    <span className="mr-1">{category.icon}</span>
+                    <span className="hidden sm:inline">{category.name}</span>
+                    <span className="sm:hidden">{category.name.slice(0, 8)}</span>
+                    ({categoryTasks.length})
                   </Button>
                 );
               })}
             </div>
 
-            {/* View Mode Toggle & Actions */}
-            <div className="flex justify-between items-center">
+            {/* View Mode Toggle & Actions - Mobile Optimized */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <ViewModeToggle currentMode={viewMode} onModeChange={setViewMode} />
               
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
                 <Button 
                   size="sm" 
-                  className="bg-rose-600 hover:bg-rose-700"
+                  className="bg-rose-600 hover:bg-rose-700 w-full sm:w-auto"
                   onClick={() => {
                     setEditingTask(null);
                     setIsTaskModalOpen(true);
@@ -312,6 +315,7 @@ const Dashboard: React.FC = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => {
                     setEditingCategory(null);
                     setIsCategoryModalOpen(true);
@@ -324,10 +328,11 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Tasks Display */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6">
               {filteredTasks.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <p>Tidak ada tugas untuk kategori ini.</p>
+                  <p className="text-sm mt-2">Klik "Tambah Tugas" untuk memulai!</p>
                 </div>
               ) : (
                 <>
@@ -339,7 +344,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Notes Panel */}
+          {/* Notes Panel - Mobile Optimized */}
           <div className="lg:col-span-1">
             <NotesPanel 
               notes={notes} 

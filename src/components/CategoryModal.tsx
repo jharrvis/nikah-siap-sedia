@@ -137,7 +137,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {category ? 'Edit Kategori' : 'Tambah Kategori Baru'}
@@ -211,11 +211,11 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
             </Select>
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               Batal
             </Button>
-            <Button type="submit" className="bg-rose-600 hover:bg-rose-700">
+            <Button type="submit" className="bg-rose-600 hover:bg-rose-700 w-full sm:w-auto">
               {category ? 'Perbarui' : 'Tambah'}
             </Button>
           </div>
