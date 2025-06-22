@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger }
-
- from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Note, Task } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,14 +41,19 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ notes, tasks, onRefresh 
     if (!user?.id) return;
 
     try {
+      const noteData = {
+        title: formData.title || null,
+        content: formData.content,
+        task_id: formData.is_general ? null : (formData.task_id || null),
+        is_general: formData.is_general,
+        user_id: user.id
+      };
+
       if (editingNote) {
         const { error } = await supabase
           .from('notes')
           .update({
-            title: formData.title || null,
-            content: formData.content,
-            task_id: formData.is_general ? null : formData.task_id || null,
-            is_general: formData.is_general,
+            ...noteData,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingNote.id);
@@ -60,13 +63,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ notes, tasks, onRefresh 
       } else {
         const { error } = await supabase
           .from('notes')
-          .insert({
-            title: formData.title || null,
-            content: formData.content,
-            task_id: formData.is_general ? null : formData.task_id || null,
-            is_general: formData.is_general,
-            user_id: user.id
-          });
+          .insert(noteData);
 
         if (error) throw error;
         toast({ title: "Catatan berhasil ditambahkan" });
@@ -150,7 +147,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({ notes, tasks, onRefresh 
                     <input
                       type="checkbox"
                       checked={formData.is_general}
-                      onChange={(e) => setFormData({ ...formData, is_general: e.target.checked })}
+                      onChange={(e) => setFormData({ ...formData, is_general: e.target.checked, task_id: '' })}
                     />
                     <span>Catatan Umum</span>
                   </label>
