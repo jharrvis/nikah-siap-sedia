@@ -2,6 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from './AuthProvider';
+import { ThemeToggle } from './ThemeToggle';
+import { AccountSettings } from './AccountSettings';
 import { LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,6 +43,10 @@ export const Header: React.FC = () => {
               <User className="h-4 w-4" />
               <span>{user?.name}</span>
             </div>
+            
+            <ThemeToggle />
+            <AccountSettings />
+            
             <Button
               variant="outline"
               size="sm"
