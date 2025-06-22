@@ -1,7 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 
-interface User {
+interface AuthUser {
   id: string;
   email: string;
   name: string;
@@ -9,11 +11,13 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => void;
+  user: AuthUser | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
   updateWeddingDate: (date: string) => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -27,87 +31,118 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('wedding_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        
+        if (session?.user) {
+          // Get wedding date from localStorage for now (until we have a profiles table)
+          const savedWeddingDate = localStorage.getItem(`wedding_date_${session.user.id}`);
+          
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email || '',
+            weddingDate: savedWeddingDate || undefined
+          });
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        const savedWeddingDate = localStorage.getItem(`wedding_date_${session.user.id}`);
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email || '',
+          weddingDate: savedWeddingDate || undefined
+        });
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulasi login - dalam aplikasi nyata akan menggunakan API
-    const savedUsers = JSON.parse(localStorage.getItem('wedding_users') || '[]');
-    const existingUser = savedUsers.find((u: any) => u.email === email && u.password === password);
-    
-    if (existingUser) {
-      const userSession = {
-        id: existingUser.id,
-        email: existingUser.email,
-        name: existingUser.name,
-        weddingDate: existingUser.weddingDate
-      };
-      setUser(userSession);
-      localStorage.setItem('wedding_user', JSON.stringify(userSession));
-      return true;
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Terjadi kesalahan saat login' };
     }
-    return false;
   };
 
-  const register = async (email: string, password: string, name: string): Promise<boolean> => {
-    const savedUsers = JSON.parse(localStorage.getItem('wedding_users') || '[]');
-    const existingUser = savedUsers.find((u: any) => u.email === email);
-    
-    if (existingUser) {
-      return false; // User sudah ada
+  const register = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Terjadi kesalahan saat mendaftar' };
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      email,
-      password,
-      name,
-      weddingDate: ''
-    };
-
-    savedUsers.push(newUser);
-    localStorage.setItem('wedding_users', JSON.stringify(savedUsers));
-
-    const userSession = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      weddingDate: newUser.weddingDate
-    };
-    
-    setUser(userSession);
-    localStorage.setItem('wedding_user', JSON.stringify(userSession));
-    return true;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('wedding_user');
+    setSession(null);
   };
 
   const updateWeddingDate = (date: string) => {
     if (user) {
       const updatedUser = { ...user, weddingDate: date };
       setUser(updatedUser);
-      localStorage.setItem('wedding_user', JSON.stringify(updatedUser));
       
-      // Update di storage users juga
-      const savedUsers = JSON.parse(localStorage.getItem('wedding_users') || '[]');
-      const updatedUsers = savedUsers.map((u: any) => 
-        u.id === user.id ? { ...u, weddingDate: date } : u
-      );
-      localStorage.setItem('wedding_users', JSON.stringify(updatedUsers));
+      // Save to localStorage temporarily
+      localStorage.setItem(`wedding_date_${user.id}`, date);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateWeddingDate }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      login, 
+      register, 
+      logout, 
+      updateWeddingDate, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );
