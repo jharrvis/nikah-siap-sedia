@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LoginForm } from '@/components/LoginForm';
@@ -7,59 +7,135 @@ import { CountdownTimer } from '@/components/CountdownTimer';
 import { WeddingDateSetter } from '@/components/WeddingDateSetter';
 import { ViewModeToggle } from '@/components/ViewModeToggle';
 import { TaskCard } from '@/components/TaskCard';
+import { TaskModal } from '@/components/TaskModal';
+import { CategoryModal } from '@/components/CategoryModal';
+import { NotesPanel } from '@/components/NotesPanel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { Task, Category, ViewMode } from '@/types';
-import { defaultCategories, defaultTasks } from '@/data/defaultData';
-import { Plus, Settings, Calendar } from 'lucide-react';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Settings, Calendar, AlertTriangle, Star } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const { categories, tasks, notes, loading, refetch } = useSupabaseData();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingCategory, setEditingCategory] = useState(null);
 
-  useEffect(() => {
-    // Load data dari localStorage atau gunakan default
-    const savedCategories = localStorage.getItem(`wedding_categories_${user?.id}`);
-    const savedTasks = localStorage.getItem(`wedding_tasks_${user?.id}`);
+  const handleToggleComplete = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
 
-    if (savedCategories) {
-      setCategories(JSON.parse(savedCategories));
-    } else {
-      setCategories(defaultCategories);
-      localStorage.setItem(`wedding_categories_${user?.id}`, JSON.stringify(defaultCategories));
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          completed: !task.completed,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId);
+
+      if (error) throw error;
+      
+      toast({
+        title: task.completed ? "Tugas dibatalkan" : "Tugas selesai!",
+        description: `${task.title} ${task.completed ? 'belum selesai' : 'telah diselesaikan'}.`
+      });
+      
+      refetch.fetchTasks();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast({
+        title: "Error",
+        description: "Gagal mengupdate tugas.",
+        variant: "destructive"
+      });
     }
-
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    } else {
-      setTasks(defaultTasks);
-      localStorage.setItem(`wedding_tasks_${user?.id}`, JSON.stringify(defaultTasks));
-    }
-  }, [user?.id]);
-
-  const handleToggleComplete = (taskId: string) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
-    localStorage.setItem(`wedding_tasks_${user?.id}`, JSON.stringify(updatedTasks));
   };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus tugas ini?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+      
+      toast({ title: "Tugas berhasil dihapus" });
+      refetch.fetchTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menghapus tugas.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus kategori ini? Semua tugas dalam kategori ini juga akan terhapus.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (error) throw error;
+      
+      toast({ title: "Kategori berhasil dihapus" });
+      refetch.fetchCategories();
+      refetch.fetchTasks();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: "Error",
+        description: "Gagal menghapus kategori.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-rose-600"></div>
+      </div>
+    );
+  }
 
   const filteredTasks = selectedCategory === 'all' 
     ? tasks 
-    : tasks.filter(task => task.categoryId === selectedCategory);
+    : tasks.filter(task => task.category_id === selectedCategory);
 
   const completedTasks = tasks.filter(task => task.completed);
   const progressPercentage = tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0;
 
+  const urgentTasks = tasks.filter(task => task.priority === 'urgent' && !task.completed);
+  const importantTasks = tasks.filter(task => task.is_important && !task.completed);
+  const overdueTasks = tasks.filter(task => 
+    task.due_date && 
+    new Date(task.due_date) < new Date() && 
+    !task.completed
+  );
+
   const renderListView = () => (
     <div className="space-y-3">
       {filteredTasks.map(task => {
-        const category = categories.find(cat => cat.id === task.categoryId);
+        const category = categories.find(cat => cat.id === task.category_id);
         if (!category) return null;
         
         return (
@@ -68,6 +144,11 @@ const Dashboard: React.FC = () => {
             task={task}
             category={category}
             onToggleComplete={handleToggleComplete}
+            onEdit={(task) => {
+              setEditingTask(task);
+              setIsTaskModalOpen(true);
+            }}
+            onDelete={handleDeleteTask}
           />
         );
       })}
@@ -77,7 +158,7 @@ const Dashboard: React.FC = () => {
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {filteredTasks.map(task => {
-        const category = categories.find(cat => cat.id === task.categoryId);
+        const category = categories.find(cat => cat.id === task.category_id);
         if (!category) return null;
         
         return (
@@ -86,6 +167,11 @@ const Dashboard: React.FC = () => {
             task={task}
             category={category}
             onToggleComplete={handleToggleComplete}
+            onEdit={(task) => {
+              setEditingTask(task);
+              setIsTaskModalOpen(true);
+            }}
+            onDelete={handleDeleteTask}
           />
         );
       })}
@@ -112,85 +198,185 @@ const Dashboard: React.FC = () => {
           <CountdownTimer weddingDate={user?.weddingDate || ''} />
         </div>
 
-        {/* Progress Overview */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-rose-600 dark:text-rose-400">Progress Persiapan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Tugas Selesai</span>
-                <span>{completedTasks.length} / {tasks.length}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            {/* Alert Cards */}
+            {(urgentTasks.length > 0 || importantTasks.length > 0 || overdueTasks.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {urgentTasks.length > 0 && (
+                  <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <div>
+                          <p className="font-medium text-red-800 dark:text-red-400">Urgent</p>
+                          <p className="text-sm text-red-600">{urgentTasks.length} tugas</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {importantTasks.length > 0 && (
+                  <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Star className="h-5 w-5 text-yellow-600" />
+                        <div>
+                          <p className="font-medium text-yellow-800 dark:text-yellow-400">Penting</p>
+                          <p className="text-sm text-yellow-600">{importantTasks.length} tugas</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {overdueTasks.length > 0 && (
+                  <Card className="border-orange-200 bg-orange-50 dark:bg-orange-900/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-5 w-5 text-orange-600" />
+                        <div>
+                          <p className="font-medium text-orange-800 dark:text-orange-400">Terlambat</p>
+                          <p className="text-sm text-orange-600">{overdueTasks.length} tugas</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
-              <Progress value={progressPercentage} className="h-2" />
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                {Math.round(progressPercentage)}% persiapan telah selesai
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            )}
 
-        {/* Category Filter */}
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedCategory('all')}
-              className={selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''}
-            >
-              Semua Tugas ({tasks.length})
-            </Button>
-            {categories.map(category => {
-              const categoryTasks = tasks.filter(task => task.categoryId === category.id);
-              return (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''}
+            {/* Progress Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-rose-600 dark:text-rose-400">Progress Persiapan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Tugas Selesai</span>
+                    <span>{completedTasks.length} / {tasks.length}</span>
+                  </div>
+                  <Progress value={progressPercentage} className="h-2" />
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    {Math.round(progressPercentage)}% persiapan telah selesai
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Category Filter */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory('all')}
+                className={selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''}
+              >
+                Semua Tugas ({tasks.length})
+              </Button>
+              {categories.map(category => {
+                const categoryTasks = tasks.filter(task => task.category_id === category.id);
+                return (
+                  <Button
+                    key={category.id}
+                    variant={selectedCategory === category.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''}
+                  >
+                    <span className="mr-2">{category.icon}</span>
+                    {category.name} ({categoryTasks.length})
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* View Mode Toggle & Actions */}
+            <div className="flex justify-between items-center">
+              <ViewModeToggle currentMode={viewMode} onModeChange={setViewMode} />
+              
+              <div className="flex space-x-2">
+                <Button 
+                  size="sm" 
+                  className="bg-rose-600 hover:bg-rose-700"
+                  onClick={() => {
+                    setEditingTask(null);
+                    setIsTaskModalOpen(true);
+                  }}
                 >
-                  <span className="mr-2">{category.icon}</span>
-                  {category.name} ({categoryTasks.length})
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tambah Tugas
                 </Button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* View Mode Toggle & Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <ViewModeToggle currentMode={viewMode} onModeChange={setViewMode} />
-          
-          <div className="flex space-x-2">
-            <Button size="sm" className="bg-rose-600 hover:bg-rose-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Tugas
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Kelola Kategori
-            </Button>
-          </div>
-        </div>
-
-        {/* Tasks Display */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-          {filteredTasks.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <p>Tidak ada tugas untuk kategori ini.</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setEditingCategory(null);
+                    setIsCategoryModalOpen(true);
+                  }}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Kelola Kategori
+                </Button>
+              </div>
             </div>
-          ) : (
-            <>
-              {viewMode === 'list' && renderListView()}
-              {viewMode === 'grid' && renderGridView()}
-              {viewMode === 'calendar' && renderCalendarView()}
-            </>
-          )}
+
+            {/* Tasks Display */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+              {filteredTasks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <p>Tidak ada tugas untuk kategori ini.</p>
+                </div>
+              ) : (
+                <>
+                  {viewMode === 'list' && renderListView()}
+                  {viewMode === 'grid' && renderGridView()}
+                  {viewMode === 'calendar' && renderCalendarView()}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Notes Panel */}
+          <div className="lg:col-span-1">
+            <NotesPanel 
+              notes={notes} 
+              tasks={tasks}
+              onRefresh={refetch.fetchNotes}
+            />
+          </div>
         </div>
       </main>
+
+      {/* Modals */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+        task={editingTask}
+        categories={categories}
+        onSave={() => {
+          refetch.fetchTasks();
+          refetch.fetchNotes();
+        }}
+      />
+
+      <CategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          setEditingCategory(null);
+        }}
+        category={editingCategory}
+        onSave={() => {
+          refetch.fetchCategories();
+          refetch.fetchTasks();
+        }}
+      />
     </div>
   );
 };

@@ -4,11 +4,15 @@ export interface Task {
   title: string;
   description: string;
   completed: boolean;
-  categoryId: string;
-  dueDate?: string;
-  priority: 'low' | 'medium' | 'high';
-  order: number;
-  createdAt: string;
+  category_id: string;
+  user_id: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  order_index: number;
+  due_date?: string;
+  venue_location?: string;
+  is_important: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Category {
@@ -17,8 +21,22 @@ export interface Category {
   description: string;
   color: string;
   icon: string;
-  order: number;
-  timeline: string; // '12-months', '6-months', '3-months', '1-month', '1-week', 'day-of'
+  order_index: number;
+  timeline: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Note {
+  id: string;
+  title?: string;
+  content: string;
+  task_id?: string;
+  user_id: string;
+  is_general: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export type ViewMode = 'list' | 'grid' | 'calendar';
