@@ -110,127 +110,131 @@ export const AccountSettings: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
-          Pengaturan
-        </Button>
+        <div className="flex items-center space-x-2 w-full cursor-pointer px-2 py-1.5 text-sm hover:bg-accent rounded-sm">
+          <Settings className="h-4 w-4" />
+          <span>Pengaturan</span>
+        </div>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Pengaturan Akun</DialogTitle>
-        </DialogHeader>
-        
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">
-              <User className="h-4 w-4 mr-2" />
-              Profil
-            </TabsTrigger>
-            <TabsTrigger value="security">
-              <Key className="h-4 w-4 mr-2" />
-              Keamanan
-            </TabsTrigger>
-            <TabsTrigger value="team">
-              <Users className="h-4 w-4 mr-2" />
-              Tim
-            </TabsTrigger>
-          </TabsList>
+      <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 m-0">
+        <div className="flex flex-col h-full">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Pengaturan Akun</DialogTitle>
+          </DialogHeader>
           
-          <TabsContent value="profile" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informasi Profil</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Email</Label>
-                  <Input value={user?.email || ''} disabled />
-                </div>
-                <div>
-                  <Label>Nama</Label>
-                  <Input value={user?.name || ''} disabled />
-                </div>
-                <div>
-                  <Label>Tanggal Pernikahan</Label>
-                  <Input value={user?.weddingDate || 'Belum diatur'} disabled />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="security" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ubah Password</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePasswordChange} className="space-y-4">
-                  <div>
-                    <Label htmlFor="newPassword">Password Baru</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                      placeholder="Masukkan password baru"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="Konfirmasi password baru"
-                    />
-                  </div>
-                  <Button type="submit" disabled={isChangingPassword}>
-                    {isChangingPassword ? 'Mengubah...' : 'Ubah Password'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="team" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Undang Anggota Tim</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleInviteUser} className="space-y-4">
-                  <div>
-                    <Label htmlFor="inviteEmail">Email</Label>
-                    <Input
-                      id="inviteEmail"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="Masukkan email untuk diundang"
-                    />
-                  </div>
-                  <Button type="submit" disabled={isInviting}>
-                    {isInviting ? 'Mengirim...' : 'Kirim Undangan'}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Anggota Tim</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <Users className="h-12 w-12 mx-auto mb-4" />
-                  <p>Belum ada anggota tim</p>
-                  <p className="text-sm mt-2">Undang orang lain untuk berkolaborasi</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          <div className="flex-1 overflow-y-auto p-6">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="profile">
+                  <User className="h-4 w-4 mr-2" />
+                  Profil
+                </TabsTrigger>
+                <TabsTrigger value="security">
+                  <Key className="h-4 w-4 mr-2" />
+                  Keamanan
+                </TabsTrigger>
+                <TabsTrigger value="team">
+                  <Users className="h-4 w-4 mr-2" />
+                  Tim
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="profile" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Informasi Profil</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label>Email</Label>
+                      <Input value={user?.email || ''} disabled />
+                    </div>
+                    <div>
+                      <Label>Nama</Label>
+                      <Input value={user?.name || ''} disabled />
+                    </div>
+                    <div>
+                      <Label>Tanggal Pernikahan</Label>
+                      <Input value={user?.weddingDate || 'Belum diatur'} disabled />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="security" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ubah Password</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div>
+                        <Label htmlFor="newPassword">Password Baru</Label>
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          placeholder="Masukkan password baru"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder="Konfirmasi password baru"
+                        />
+                      </div>
+                      <Button type="submit" disabled={isChangingPassword}>
+                        {isChangingPassword ? 'Mengubah...' : 'Ubah Password'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="team" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Undang Anggota Tim</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleInviteUser} className="space-y-4">
+                      <div>
+                        <Label htmlFor="inviteEmail">Email</Label>
+                        <Input
+                          id="inviteEmail"
+                          type="email"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          placeholder="Masukkan email untuk diundang"
+                        />
+                      </div>
+                      <Button type="submit" disabled={isInviting}>
+                        {isInviting ? 'Mengirim...' : 'Kirim Undangan'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Anggota Tim</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <Users className="h-12 w-12 mx-auto mb-4" />
+                      <p>Belum ada anggota tim</p>
+                      <p className="text-sm mt-2">Undang orang lain untuk berkolaborasi</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -11,10 +11,17 @@ import {
 import { useAuth } from './AuthProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { AccountSettings } from './AccountSettings';
+import { NotificationBell } from './NotificationBell';
 import { LogOut, User, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Task } from '@/types';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  tasks?: Task[];
+  onNotificationFilter?: (filter: string) => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ tasks = [], onNotificationFilter = () => {} }) => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
@@ -46,6 +53,7 @@ export const Header: React.FC = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            <NotificationBell tasks={tasks} onFilterChange={onNotificationFilter} />
             <ThemeToggle />
             
             <DropdownMenu>
@@ -66,7 +74,6 @@ export const Header: React.FC = () => {
                 <DropdownMenuItem asChild>
                   <AccountSettings />
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Keluar

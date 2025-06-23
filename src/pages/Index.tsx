@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LoginForm } from '@/components/LoginForm';
 import { Header } from '@/components/Header';
-import { CountdownTimer } from '@/components/CountdownTimer';
+import { CountdownProgress } from '@/components/CountdownProgress';
 import { WeddingDateSetter } from '@/components/WeddingDateSetter';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
@@ -12,8 +12,7 @@ import { CategoryModal } from '@/components/CategoryModal';
 import { NotesPanel } from '@/components/NotesPanel';
 import { FloatingButtons } from '@/components/FloatingButtons';
 import { CompactSearchFilter } from '@/components/CompactSearchFilter';
-import { TaskBoxes } from '@/components/TaskBoxes';
-import { CompactProgress } from '@/components/CompactProgress';
+import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Task, Category } from '@/types';
@@ -21,7 +20,6 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useTaskFilters } from '@/hooks/useTaskFilters';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -32,16 +30,11 @@ const Dashboard: React.FC = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [showImportantOnly, setShowImportantOnly] = useState(false);
 
-  // Get filtered tasks based on category and important filter
+  // Get filtered tasks based on category
   const categoryFilteredTasks = selectedCategory === 'all' 
     ? tasks 
     : tasks.filter(task => task.category_id === selectedCategory);
-
-  const displayTasks = showImportantOnly 
-    ? categoryFilteredTasks.filter(task => task.is_important && !task.completed)
-    : categoryFilteredTasks;
 
   // Use the task filters hook
   const {
@@ -54,7 +47,7 @@ const Dashboard: React.FC = () => {
     statusFilter,
     setStatusFilter,
     filteredAndSortedTasks,
-  } = useTaskFilters(displayTasks);
+  } = useTaskFilters(categoryFilteredTasks);
 
   const handleToggleComplete = async (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -110,6 +103,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleNotificationFilter = (filter: string) => {
+    switch (filter) {
+      case 'important':
+        setStatusFilter('important');
+        break;
+      case 'today':
+        setStatusFilter('today');
+        break;
+      case 'overdue':
+        setStatusFilter('overdue');
+        break;
+      default:
+        setStatusFilter('all');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -119,58 +128,56 @@ const Dashboard: React.FC = () => {
   }
 
   const completedTasks = tasks.filter(task => task.completed);
-  const overdueTasks = tasks.filter(task => 
-    task.due_date && 
-    new Date(task.due_date) < new Date() && 
-    !task.completed
-  );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <Header tasks={tasks} onNotificationFilter={handleNotificationFilter} />
       
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
         {/* Wedding Date Setter */}
         <WeddingDateSetter />
         
-        {/* Countdown Timer */}
-        <div className="mb-6">
-          <CountdownTimer weddingDate={user?.weddingDate || ''} />
-        </div>
+        {/* Combined Countdown & Progress */}
+        <CountdownProgress 
+          weddingDate={user?.weddingDate || ''}
+          completedTasks={completedTasks.length}
+          totalTasks={tasks.length}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {/* Compact Progress */}
-            <CompactProgress 
-              completedTasks={completedTasks.length}
-              totalTasks={tasks.length}
-            />
-
-            {/* Task Boxes */}
-            <TaskBoxes tasks={tasks} />
-
-            {/* Overdue Alert */}
-            {overdueTasks.length > 0 && (
-              <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                  <span className="text-red-800 dark:text-red-400 font-medium">
-                    {overdueTasks.length} tugas terlambat
-                  </span>
+            {/* Search/Filter and Category Tabs */}
+            <div className="flex items-center justify-between space-x-4">
+              {/* Category Tabs - Scrollable */}
+              <div className="flex-1 overflow-x-auto">
+                <div className="flex space-x-2 pb-2">
                   <Button
-                    variant="outline"
+                    variant={selectedCategory === 'all' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setStatusFilter('overdue')}
-                    className="ml-auto text-red-600 border-red-200"
+                    onClick={() => setSelectedCategory('all')}
+                    className={`${selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs flex-shrink-0`}
                   >
-                    Lihat
+                    Semua ({tasks.length})
                   </Button>
+                  {categories.map(category => {
+                    const categoryTasks = tasks.filter(task => task.category_id === category.id);
+                    return (
+                      <Button
+                        key={category.id}
+                        variant={selectedCategory === category.id ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelectedCategory(category.id)}
+                        className={`${selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs flex-shrink-0`}
+                      >
+                        <span className="mr-1">{category.icon}</span>
+                        {category.name} ({categoryTasks.length})
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
-
-            {/* Search and Category Filter */}
-            <div className="flex items-center space-x-4 overflow-x-auto pb-2">
+              
+              {/* Search and Filter Icons - Fixed Right */}
               <div className="flex-shrink-0">
                 <CompactSearchFilter
                   searchTerm={searchTerm}
@@ -183,50 +190,12 @@ const Dashboard: React.FC = () => {
                   onStatusFilterChange={setStatusFilter}
                 />
               </div>
-              
-              {/* Category Tabs - Scrollable */}
-              <div className="flex space-x-2 flex-shrink-0">
-                <Button
-                  variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setShowImportantOnly(false);
-                  }}
-                  className={`${selectedCategory === 'all' ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs flex-shrink-0`}
-                >
-                  Semua ({tasks.length})
-                </Button>
-                {categories.map(category => {
-                  const categoryTasks = tasks.filter(task => task.category_id === category.id);
-                  return (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.id ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setSelectedCategory(category.id);
-                        setShowImportantOnly(false);
-                      }}
-                      className={`${selectedCategory === category.id ? 'bg-rose-600 hover:bg-rose-700' : ''} text-xs flex-shrink-0`}
-                    >
-                      <span className="mr-1">{category.icon}</span>
-                      {category.name} ({categoryTasks.length})
-                    </Button>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Show current filter status */}
-            {(showImportantOnly || searchTerm || priorityFilter !== 'all' || statusFilter !== 'all') && (
+            {(searchTerm || priorityFilter !== 'all' || statusFilter !== 'all') && (
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-300">Filter aktif:</span>
-                {showImportantOnly && (
-                  <Badge variant="secondary" className="cursor-pointer" onClick={() => setShowImportantOnly(false)}>
-                    Tugas Penting ✕
-                  </Badge>
-                )}
                 {searchTerm && (
                   <Badge variant="secondary" className="cursor-pointer" onClick={() => setSearchTerm('')}>
                     "{searchTerm}" ✕
@@ -287,6 +256,8 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <Footer />
 
       {/* Floating Action Buttons */}
       <FloatingButtons
