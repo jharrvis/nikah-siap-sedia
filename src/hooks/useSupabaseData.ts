@@ -26,85 +26,109 @@ export const useSupabaseData = () => {
   ];
 
   const fetchCategories = async () => {
-    if (!user?.id) return;
-    
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('order_index');
-    
-    if (error) {
-      console.error('Error fetching categories:', error);
+    if (!user?.id) {
+      setLoading(false);
       return;
     }
-
-    if (data.length === 0) {
-      // Buat kategori default untuk user baru
-      const defaultCategoriesWithUserId = defaultCategories.map((cat, index) => ({
-        ...cat,
-        user_id: user.id,
-        order_index: index
-      }));
-      
-      const { data: newCategories, error: createError } = await supabase
+    
+    try {
+      const { data, error } = await supabase
         .from('categories')
-        .insert(defaultCategoriesWithUserId)
-        .select();
+        .select('*')
+        .eq('user_id', user.id)
+        .order('order_index');
       
-      if (!createError && newCategories) {
-        setCategories(newCategories);
+      if (error) {
+        console.error('Error fetching categories:', error);
+        setLoading(false);
+        return;
       }
-    } else {
-      setCategories(data);
+
+      if (data.length === 0) {
+        // Buat kategori default untuk user baru
+        const defaultCategoriesWithUserId = defaultCategories.map((cat, index) => ({
+          ...cat,
+          user_id: user.id,
+          order_index: index
+        }));
+        
+        const { data: newCategories, error: createError } = await supabase
+          .from('categories')
+          .insert(defaultCategoriesWithUserId)
+          .select();
+        
+        if (!createError && newCategories) {
+          setCategories(newCategories);
+        }
+      } else {
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchCategories:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchTasks = async () => {
     if (!user?.id) return;
     
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('order_index');
-    
-    if (error) {
-      console.error('Error fetching tasks:', error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('order_index');
+      
+      if (error) {
+        console.error('Error fetching tasks:', error);
+        return;
+      }
+      
+      // Type assertion to ensure priority is properly typed
+      const typedTasks = (data || []).map(task => ({
+        ...task,
+        priority: task.priority as 'low' | 'medium' | 'high' | 'urgent'
+      }));
+      
+      setTasks(typedTasks);
+    } catch (error) {
+      console.error('Error in fetchTasks:', error);
     }
-    
-    // Type assertion to ensure priority is properly typed
-    const typedTasks = (data || []).map(task => ({
-      ...task,
-      priority: task.priority as 'low' | 'medium' | 'high' | 'urgent'
-    }));
-    
-    setTasks(typedTasks);
   };
 
   const fetchNotes = async () => {
     if (!user?.id) return;
     
-    const { data, error } = await supabase
-      .from('notes')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching notes:', error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching notes:', error);
+        return;
+      }
+      
+      setNotes(data || []);
+    } catch (error) {
+      console.error('Error in fetchNotes:', error);
     }
-    
-    setNotes(data || []);
   };
 
   useEffect(() => {
     if (user?.id) {
+      setLoading(true);
       Promise.all([fetchCategories(), fetchTasks(), fetchNotes()]).finally(() => {
         setLoading(false);
       });
+    } else {
+      setCategories([]);
+      setTasks([]);
+      setNotes([]);
+      setLoading(false);
     }
   }, [user?.id]);
 
