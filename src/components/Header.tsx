@@ -1,10 +1,17 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from './AuthProvider';
 import { ThemeToggle } from './ThemeToggle';
 import { AccountSettings } from './AccountSettings';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const Header: React.FC = () => {
@@ -38,24 +45,34 @@ export const Header: React.FC = () => {
             </h1>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
-              <User className="h-4 w-4" />
-              <span>{user?.name}</span>
-            </div>
-            
+          <div className="flex items-center space-x-2">
             <ThemeToggle />
-            <AccountSettings />
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="flex items-center space-x-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user?.name}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <div className="flex items-center space-x-2 px-2 py-1.5">
+                    <User className="h-4 w-4" />
+                    <span>{user?.name}</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <AccountSettings />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
