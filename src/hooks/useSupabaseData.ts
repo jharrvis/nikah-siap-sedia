@@ -10,6 +10,7 @@ export const useSupabaseData = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Default categories untuk user baru
   const defaultCategories = [
@@ -32,6 +33,7 @@ export const useSupabaseData = () => {
     }
     
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -40,11 +42,10 @@ export const useSupabaseData = () => {
       
       if (error) {
         console.error('Error fetching categories:', error);
-        setLoading(false);
-        return;
+        throw error;
       }
 
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         // Buat kategori default untuk user baru
         const defaultCategoriesWithUserId = defaultCategories.map((cat, index) => ({
           ...cat,
@@ -57,16 +58,19 @@ export const useSupabaseData = () => {
           .insert(defaultCategoriesWithUserId)
           .select();
         
-        if (!createError && newCategories) {
-          setCategories(newCategories);
+        if (createError) {
+          console.error('Error creating default categories:', createError);
+          throw createError;
         }
+        
+        setCategories(newCategories || []);
       } else {
         setCategories(data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchCategories:', error);
-    } finally {
-      setLoading(false);
+      setError(error.message || 'Gagal memuat kategori');
+      setCategories([]);
     }
   };
 
@@ -74,6 +78,7 @@ export const useSupabaseData = () => {
     if (!user?.id) return;
     
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -82,7 +87,7 @@ export const useSupabaseData = () => {
       
       if (error) {
         console.error('Error fetching tasks:', error);
-        return;
+        throw error;
       }
       
       // Type assertion to ensure priority is properly typed
@@ -92,8 +97,10 @@ export const useSupabaseData = () => {
       }));
       
       setTasks(typedTasks);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchTasks:', error);
+      setError(error.message || 'Gagal memuat tugas');
+      setTasks([]);
     }
   };
 
@@ -101,6 +108,7 @@ export const useSupabaseData = () => {
     if (!user?.id) return;
     
     try {
+      setError(null);
       const { data, error } = await supabase
         .from('notes')
         .select('*')
@@ -109,26 +117,31 @@ export const useSupabaseData = () => {
       
       if (error) {
         console.error('Error fetching notes:', error);
-        return;
+        throw error;
       }
       
       setNotes(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchNotes:', error);
+      setError(error.message || 'Gagal memuat catatan');
+      setNotes([]);
     }
   };
 
   useEffect(() => {
     if (user?.id) {
       setLoading(true);
-      Promise.all([fetchCategories(), fetchTasks(), fetchNotes()]).finally(() => {
-        setLoading(false);
-      });
+      setError(null);
+      Promise.all([fetchCategories(), fetchTasks(), fetchNotes()])
+        .finally(() => {
+          setLoading(false);
+        });
     } else {
       setCategories([]);
       setTasks([]);
       setNotes([]);
       setLoading(false);
+      setError(null);
     }
   }, [user?.id]);
 
@@ -137,6 +150,7 @@ export const useSupabaseData = () => {
     tasks,
     notes,
     loading,
+    error,
     refetch: { fetchCategories, fetchTasks, fetchNotes }
   };
 };

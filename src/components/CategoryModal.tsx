@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Category } from '@/types';
 import { useAuth } from './AuthProvider';
 import { useToast } from '@/hooks/use-toast';
+import { IconPicker } from './IconPicker';
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -137,89 +138,93 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {category ? 'Edit Kategori' : 'Tambah Kategori Baru'}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nama Kategori</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Masukkan nama kategori"
-              required
-            />
-          </div>
+      <DialogContent className="max-w-full max-h-full w-screen h-screen p-0 m-0">
+        <div className="flex flex-col h-full">
+          <DialogHeader className="p-6 pb-0 border-b">
+            <DialogTitle>
+              {category ? 'Edit Kategori' : 'Tambah Kategori Baru'}
+            </DialogTitle>
+          </DialogHeader>
           
-          <div>
-            <Label htmlFor="description">Deskripsi</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Masukkan deskripsi kategori"
-              rows={3}
-            />
+          <div className="flex-1 overflow-y-auto p-6">
+            <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+              <div>
+                <Label htmlFor="name">Nama Kategori</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Masukkan nama kategori"
+                  required
+                  className="mt-2"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="description">Deskripsi</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Masukkan deskripsi kategori"
+                  rows={3}
+                  className="mt-2"
+                />
+              </div>
+
+              <IconPicker
+                selectedIcon={formData.icon}
+                onSelectIcon={(icon) => setFormData({ ...formData, icon })}
+              />
+
+              <div>
+                <Label htmlFor="color">Warna</Label>
+                <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colorOptions.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-4 h-4 rounded ${color.value}`}></div>
+                          <span>{color.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="timeline">Timeline</Label>
+                <Select value={formData.timeline} onValueChange={(value) => setFormData({ ...formData, timeline: value })}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timelineOptions.map((timeline) => (
+                      <SelectItem key={timeline.value} value={timeline.value}>
+                        {timeline.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </form>
           </div>
 
-          <div>
-            <Label htmlFor="icon">Icon</Label>
-            <Input
-              id="icon"
-              value={formData.icon}
-              onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              placeholder="📋"
-            />
+          <div className="p-6 border-t bg-gray-50 dark:bg-gray-800">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 max-w-2xl mx-auto">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                Batal
+              </Button>
+              <Button onClick={handleSubmit} className="bg-rose-600 hover:bg-rose-700 w-full sm:w-auto">
+                {category ? 'Perbarui' : 'Tambah'}
+              </Button>
+            </div>
           </div>
-
-          <div>
-            <Label htmlFor="color">Warna</Label>
-            <Select value={formData.color} onValueChange={(value) => setFormData({ ...formData, color: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {colorOptions.map((color) => (
-                  <SelectItem key={color.value} value={color.value}>
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-4 h-4 rounded ${color.value}`}></div>
-                      <span>{color.label}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="timeline">Timeline</Label>
-            <Select value={formData.timeline} onValueChange={(value) => setFormData({ ...formData, timeline: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {timelineOptions.map((timeline) => (
-                  <SelectItem key={timeline.value} value={timeline.value}>
-                    {timeline.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
-              Batal
-            </Button>
-            <Button type="submit" className="bg-rose-600 hover:bg-rose-700 w-full sm:w-auto">
-              {category ? 'Perbarui' : 'Tambah'}
-            </Button>
-          </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
